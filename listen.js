@@ -8,7 +8,8 @@ require("dotenv").config();
 
 const apiId = parseInt(process.env.TELEGRAM_API_ID);
 const apiHash = process.env.TELEGRAM_API_HASH;
-const filePath = process.env.DOWNLOADPATH;
+let filePath = process.env.MOVIES_DOWNLOADPATH;
+let fileType='Movie';
 
 //const stringSession = new StringSession(""); // Empty string on first run
 const storeSession = new StoreSession("auth");
@@ -29,47 +30,35 @@ const storeSession = new StoreSession("auth");
     //console.log("Session string:", client.session.save());
     client.session.save()
     //new code
-    console.log("👀 Listening for new messages...");
     const chat = await client.getEntity("@vivekvismayam");
+    console.log("👀 Listening for new messages...");
+    await client.sendMessage(chat, {message: "👀 Listening for new messages..."});
     client.addEventHandler(async (event) => {
         const message = event.message;
         if (message && message.media) {
-            console.log(JSON.stringify(message))
             console.log(`[${message.senderId}] ${message.text}`);
-            await replyToAMessage(chat, "Downloading started.... ", message.id);
-            await client.downloadMedia(message, {
-                outputFile: filePath
-            });
-            // Delete the message
-            await replyToAMessage(chat, "Downloaded to " + filePath, message.id);
-            await client.deleteMessages(chat, [message.id], { revoke: true });
-            console.log("Downloaded:", filePath);
+            try {
+                await replyToAMessage(chat, "Downloading started to "+fileType, message.id);
+                await client.downloadMedia(message, {
+                    outputFile: filePath
+                });
+                // Delete the message
+                await replyToAMessage(chat, "Deleting message. File Downloaded to folder"+fileType+" \nPath : "+ filePath, message.id);
+                await client.deleteMessages(chat, [message.id], { revoke: true });
+                //console.log("Downloaded:", filePath);
+            }catch(e){
+                console.log("Error:", e);
+                await replyToAMessage(chat, "ERROR OCCURED "+JSON.stringify(e), message.id);
+            }
+        }else if(message?.text?.toUpperCase()=='PATH'){
+            await client.sendMessage(chat, {message: "PATH is "+fileType+"\nPath : "+filePath});
+        }else if(message?.text?.toUpperCase()=='CHANGEPATH'){
+            filePath=filePath==process.env.MOVIES_DOWNLOADPATH?process.env.SERIES_DOWNLOADPATH:process.env.MOVIES_DOWNLOADPATH;
+            fileType=fileType=='Movie'?'Series':'Movie'
+            await client.sendMessage(chat, {message: "PATH is Change to "+fileType+"\n Path : "+filePath});
         }
     }, new NewMessage({ chats: ["@vivekvismayam"], incoming: true }));
 
-    //end
-
-    /* 
-    const chat = await client.getEntity("@vivekvismayam");
-    const messages = await client.getMessages(chat, { limit: 5 });
-    
-    for (const message of messages) {
-        if (message.media) {
-            console.log("Message Id "+message.id)
-            const filePath = process.env.DOWNLOADPATH;
-            await replyToAMessage(chat, "Downloading started.... ", message.id);
-            await client.downloadMedia(message, {
-                outputFile: filePath
-            });
-            // Delete the message
-            await replyToAMessage(chat, "Downloaded to " + filePath, message.id);
-            await client.deleteMessages(chat, [message.id], { revoke: true });
-            console.log("Downloaded:", filePath);
-        }
-    }
-    
-    await client.disconnect();
-    */
     async function replyToAMessage(chat, replyText, messageIdToReplyTo) {
 
         await client.sendMessage(chat, {
