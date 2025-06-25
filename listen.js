@@ -52,7 +52,7 @@ const storeSession = new StoreSession("auth");
                     progressCallback: (received, total) => {
                         const percent = ((received / total) * 100).toFixed(2);
                         if (percent > msgStep && msgPercent < msgStep) {
-                            replyToAMessage(chat, "Download percentage " + percent, message.id);
+                            replyToAMessage(chat, "🚧Download crossed " + msgStep+"%", message.id);
                             msgStep += 10;
                             msgPercent += 10;
                         }
