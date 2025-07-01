@@ -1,3 +1,4 @@
+# Ignore environment and auth config
 .env
 node_modules
 auth
