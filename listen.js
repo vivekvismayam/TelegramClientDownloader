@@ -9,19 +9,17 @@ require("dotenv").config();
 
 const apiId = parseInt(process.env.TELEGRAM_API_ID);
 const apiHash = process.env.TELEGRAM_API_HASH;
+const admin=process.env.ADMIN_USERNAME;
 const deleteFilePostDownload = process.env.DELETE_FILES_POST_DOWNLOAD == 'DELETE';
 let filePath = process.env.MOVIES_DOWNLOADPATH;
 let fileType = 'Movie';
 
-
-//const stringSession = new StringSession(""); // Empty string on first run
 const storeSession = new StoreSession("auth");
 
 (async () => {
     const client = new TelegramClient(storeSession, apiId, apiHash, {
         connectionRetries: 5,
     });
-
     await client.start({
         phoneNumber: async () => await input.text("Phone number: "),
         password: async () => await input.text("2FA password: "),
@@ -30,10 +28,8 @@ const storeSession = new StoreSession("auth");
     });
 
     console.log("Logged in!");
-    //console.log("Session string:", client.session.save());
     client.session.save()
-    //new code
-    const chat = await client.getEntity("@vivekvismayam");
+    const chat = await client.getEntity(admin);
     console.log("👀 Listening for new messages...");
     await client.sendMessage(chat, { message: "👀 Listening for new messages..." });
     client.addEventHandler(async (event) => {
@@ -77,7 +73,6 @@ const storeSession = new StoreSession("auth");
     }, new NewMessage({ chats: ["@vivekvismayam"], incoming: true }));
 
     async function replyToAMessage(chat, replyText, messageIdToReplyTo) {
-
         await client.sendMessage(chat, {
             message: replyText,
             replyTo: messageIdToReplyTo,
